@@ -1,91 +1,92 @@
-# Clash Subscription Merge
+# Clash 订阅合并
 
-A simple web service to merge multiple Clash subscription links into a single, unified configuration file. It applies a custom set of rules, proxy groups, and DNS settings to the merged subscription, providing a powerful and personalized Clash experience.
+一个简单的 Web 服务，可将多个 Clash 订阅链接合并为单个统一的配置文件。它将一组自定义规则、代理组和 DNS 设置应用于合并后的订阅，为您提供强大且个性化的 Clash 体验。
 
-## Deploy
+## 部署
 
-### Deploy with Vercel
+### 使用 Vercel 部署
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ZzanZiFeng/Clash-ubscription-merge&repository-name=my-clash-subscription-merge)
+[![使用 Vercel 部署](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ZzanZiFeng/Clash-ubscription-merge&repository-name=my-clash-subscription-merge)
 
-### Deploy to Netlify
+### 部署到 Netlify
 
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/ZzanZiFeng/Clash-ubscription-merge)
+[![部署到 Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/ZzanZiFeng/Clash-ubscription-merge)
 
-### Deploy to Cloudflare
+### 部署到 Cloudflare
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/ZzanZiFeng/Clash-ubscription-merge)
+[![部署到 Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/ZzanZiFeng/Clash-ubscription-merge)
+- 或者，您可以手动将 [`src/worker.js`](src/worker.js) 的内容粘贴到 [Cloudflare Workers Playground](https://workers.cloudflare.com/playground) 并点击“部署”按钮。
 
-## Features
+## 功能特性
 
-- **Merge Multiple Subscriptions**: Combine proxy servers from different subscription links into one configuration.
-- **Custom Rules**: Apply your own set of rules to control traffic flow.
-- **Automatic Proxy Groups**: Automatically create proxy groups based on region (e.g., Hong Kong, Taiwan, Singapore, Japan, USA).
-- **Remove Duplicate Proxies**: Automatically remove duplicate proxies with the same name.
-- **Easy to Use**: Simply run the service and provide your subscription links in the URL.
+- **合并多个订阅**：将来自不同订阅链接的代理服务器合并到一个配置中。
+- **自定义规则**：应用您自己的一套规则来控制流量走向。
+- **自动代理组**：根据地区（如：香港、台湾、新加坡、日本、美国）自动创建代理组。
+- **移除重复代理**：自动删除名称相同的重复代理。
+- **使用简单**：只需运行服务，并在 URL 中提供您的订阅链接即可。
 
-## Prerequisites
+## 环境要求
 
-Before you begin, ensure you have the following installed:
-- [Node.js](https://nodejs.org/) (v14 or higher is recommended)
-- [npm](https://www.npmjs.com/) (usually comes with Node.js)
+在开始之前，请确保您已安装以下软件：
+- [Node.js](https://nodejs.org/) (建议使用 v14 或更高版本)
+- [npm](https://www.npmjs.com/) (通常随 Node.js 一起安装)
 
-## Installation
+## 安装步骤
 
-1.  **Clone or download the project files:**
-    If you have Git installed, you can clone this repository. Otherwise, download the `index.js`, `clash-rules.js`, and `package.json` files directly.
+1.  **克隆或下载项目文件：**
+    如果您安装了 Git，可以克隆本仓库。否则，直接下载 `index.js`, `clash-rules.js`, 和 `package.json` 这几个文件。
 
-2.  **Navigate to the project directory:**
+2.  **进入项目目录：**
     ```bash
     cd /path/to/Clash-ubscription-merge
     ```
 
-3.  **Install dependencies:**
-    Run the following command to install the required libraries (`express`, `axios`, `js-yaml`).
+3.  **安装依赖：**
+    运行以下命令来安装所需的支持库 (`express`, `axios`, `js-yaml`)。
     ```bash
     npm install
     ```
 
-## How to Use
+## 如何使用
 
-1.  **Start the service:**
-    Run the following command in your terminal to start the web service.
+1.  **启动服务：**
+    在您的终端中运行以下命令来启动 Web 服务。
     ```bash
     node index.js
     ```
-    You should see a message indicating that the service is running on port 3000.
+    您应该会看到一条消息，提示服务已在 3000 端口上运行。
 
-2.  **Construct the merge URL:**
-    The service provides a `/merge` endpoint that accepts a comma-separated list of subscription links. The URL format is as follows:
+2.  **构建合并 URL：**
+    本服务提供了一个 `/merge` 接口，它接受一个用逗号分隔的订阅链接列表。URL 格式如下：
 
     ```
-    http://localhost:3000/merge?urls=<link1>,<link2>,<link3>...
+    http://localhost:3000/merge?urls=<链接1>,<链接2>,<链接3>...
     ```
 
-    **Replace `<link1>`, `<link2>`, etc., with your own Clash subscription links.**
+    **请将 `<链接1>`, `<链接2>` 等替换为您自己的 Clash 订阅链接。**
 
-3.  **Add to your Clash client:**
-    - Copy the full URL you constructed in the previous step.
-    - Open your Clash client (e.g., Clash Verge, Clash for Windows, etc.).
-    - Go to the "Profiles" section and add a new profile from a URL.
-    - Paste your URL and save.
-    - Your Clash client will now fetch the merged and customized configuration.
+3.  **添加到您的 Clash 客户端：**
+    - 复制上一步中构建好的完整 URL。
+    - 打开您的 Clash 客户端 (例如 Clash Verge, Clash for Windows 等)。
+    - 前往 “Profiles” (配置) 部分，通过 URL 新增一个配置文件。
+    - 粘贴您的 URL 并保存。
+    - 您的 Clash 客户端现在将会获取到合并并应用了自定义规则的配置。
 
-### Example
+### 使用示例
 
-Suppose you have two subscription links:
+假设您有两个订阅链接：
 - `https://example.com/mysub1.yaml`
 - `https://another.com/mysub2.yaml`
 
-The merge URL you would use is:
+那么您需要使用的合并 URL 是：
 ```
 http://localhost:3000/merge?urls=https://example.com/mysub1.yaml,https://another.com/mysub2.yaml
 ```
 
-## Customization
+## 自定义配置
 
-All custom logic, including rules, proxy groups, and DNS settings, is located in the `clash-rules.js` file. You can modify this file to suit your personalized needs.
+所有的自定义逻辑，包括规则、代理组和 DNS 设置，都位于 `clash-rules.js` 文件中。您可以修改此文件以满足您的个性化需求。
 
-- **Custom Rules**: To add your own high-priority rules, edit the `customRules` array in the `overwriteRules` function.
-- **Proxy Groups**: To change how proxy groups are created or to add new ones, modify the `overwriteProxyGroups` function.
-- **DNS Settings**: To adjust DNS settings (e.g., preferred DNS servers), modify the `overwriteDns` function.
+- **自定义规则**：如果要添加最高优先级的您自己的规则，请编辑 `overwriteRules` 函数中的 `customRules` 数组。
+- **代理组**：如果要更改代理组的创建方式或添加新的代理组，请修改 `overwriteProxyGroups` 函数。
+- **DNS 设置**：如果要调整 DNS 设置（例如首选的 DNS 服务器），请修改 `overwriteDns` 函数。
