@@ -199,6 +199,12 @@ app.get('/merge', async (req, res) => {
     }
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+const serverless = require('serverless-http');
+
+// ... (The rest of the existing express app code)
+
+app.get('/merge', async (req, res) => {
+    // ... (The rest of the existing /merge route handler code)
 });
+
+module.exports.handler = serverless(app);
