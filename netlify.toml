@@ -2,6 +2,9 @@
   command = "npm install"
   functions = "functions"
 
+[functions]
+  included_files = ["functions/clash-rules.js"]
+
 [[redirects]]
   from = "/*"
   to = "/.netlify/functions/server"
