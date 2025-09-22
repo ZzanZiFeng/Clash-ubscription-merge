@@ -1,7 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const yaml = require('js-yaml');
-const { main } = require('../clash-rules');
+const { main } = require('./clash-rules');
 
 const app = express();
 const port = process.env.PORT || 3000;
