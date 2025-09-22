@@ -1,27 +1,382 @@
-// Define the `main` function
-
-const proxyName = "代理模式";
-
-function main (params) {
-    if (!params.proxies) return params;
-    overwriteRules (params);
-    overwriteProxyGroups (params);
-    overwriteDns (params);
-    return params;
+// 地区检测规则配置 - 基于IP段的精确地理位置检测
+const regionDetectionRules = {
+    '香港': {
+        code: 'HK',
+        ipRanges: [
+            // 香港主要IP段
+            /^103\.10\./, /^103\.21\./, /^103\.31\./, /^103\.243\./, /^103\.16\./,
+            /^113\.28\./, /^113\.30\./, /^119\.28\./, /^119\.29\./,
+            /^202\.64\./, /^202\.67\./, /^202\.72\./, /^202\.125\./,
+            /^210\.3\./, /^210\.4\./, /^210\.176\./, /^210\.177\./,
+            /^218\.102\./, /^218\.213\./, /^203\.80\./, /^203\.198\./
+        ]
+    },
+    '台湾': {
+        code: 'TW',
+        ipRanges: [
+            // 台湾主要IP段
+            /^1\.34\./, /^1\.160\./, /^1\.163\./, /^1\.168\./,
+            /^60\.248\./, /^60\.249\./, /^60\.250\./, /^60\.251\./,
+            /^111\.240\./, /^111\.241\./, /^111\.242\./, /^111\.243\./,
+            /^114\.32\./, /^114\.33\./, /^114\.34\./, /^114\.35\./,
+            /^140\.109\./, /^140\.110\./, /^140\.111\./, /^140\.112\./,
+            /^163\.13\./, /^163\.14\./, /^163\.15\./, /^163\.16\./
+        ]
+    },
+    '新加坡': {
+        code: 'SG',
+        ipRanges: [
+            // 新加坡主要IP段
+            /^103\.28\./, /^103\.225\./, /^103\.233\./, /^103\.47\./,
+            /^155\.133\./, /^165\.21\./, /^175\.103\./, /^180\.87\./,
+            /^202\.94\./, /^202\.156\./, /^202\.162\./, /^203\.116\./,
+            /^210\.4\./, /^210\.185\./, /^218\.100\./, /^220\.255\./
+        ]
+    },
+    '日本': {
+        code: 'JP',
+        ipRanges: [
+            // 日本主要IP段
+            /^138\.2\./, /^203\.10\./, /^212\.192\./, /^27\.0\./,
+            /^49\.212\./, /^49\.213\./, /^49\.214\./, /^49\.215\./,
+            /^118\.27\./, /^118\.238\./, /^118\.239\./, /^118\.240\./,
+            /^153\.120\./, /^153\.121\./, /^153\.122\./, /^153\.123\./,
+            /^202\.13\./, /^202\.32\./, /^202\.208\./, /^210\.130\./,
+            /^210\.131\./, /^210\.132\./, /^210\.133\./, /^220\.100\./
+        ]
+    },
+    '美国': {
+        code: 'US',
+        ipRanges: [
+            // 美国主要IP段 (包含您提供的IP)
+            /^108\.181\./, /^208\.87\./, /^63\.141\./, /^199\.168\./,
+            /^107\.150\./, /^192\.151\./, /^173\.208\./, /^142\.54\./,
+            /^166\.88\./, /^38\.134\./, /^207\.174\./, /^64\.233\./,
+            /^173\.252\./, /^31\.13\./, /^157\.240\./, /^199\.16\./,
+            /^23\.227\./, /^23\.235\./, /^23\.78\./, /^23\.79\./,
+            /^104\.16\./, /^104\.17\./, /^104\.18\./, /^104\.19\./,
+            /^8\.8\./, /^8\.34\./, /^172\.217\./, /^142\.250\./,
+            // 添加更多美国IP段
+            /^168\.138\./, /^64\.181\./, /^165\.1\./, /^38\.55\./,
+            /^172\.245\./, /^198\.199\./, /^159\.65\./, /^174\.138\./,
+            /^68\.183\./, /^157\.245\./, /^134\.122\./, /^167\.99\./,
+            /^188\.166\./, /^143\.198\./, /^165\.22\./, /^178\.128\./
+        ]
+    },
+    '英国': {
+        code: 'GB',
+        ipRanges: [
+            // 英国主要IP段
+            /^85\.159\./, /^140\.238\./, /^193\.123\./, /^212\.58\./,
+            /^80\.68\./, /^80\.87\./, /^81\.2\./, /^81\.103\./,
+            /^195\.59\./, /^195\.66\./, /^195\.137\./, /^195\.149\./,
+            /^212\.140\./, /^212\.159\./, /^213\.205\./, /^217\.163\./,
+            // 添加更多英国IP段
+            /^91\.149\./, /^193\.108\./, /^192\.124\./
+        ]
+    },
+    '加拿大': {
+        code: 'CA',
+        ipRanges: [
+            // 加拿大主要IP段
+            /^24\.222\./, /^24\.225\./, /^65\.92\./, /^65\.95\./,
+            /^69\.196\./, /^70\.29\./, /^99\.232\./, /^99\.233\./,
+            /^142\.59\./, /^198\.53\./, /^198\.84\./, /^206\.248\./
+        ]
+    },
+    '德国': {
+        code: 'DE',
+        ipRanges: [
+            // 德国主要IP段
+            /^141\.147\./, /^202\.71\./, /^88\.198\./, /^144\.76\./,
+            /^138\.201\./, /^168\.119\./, /^195\.201\./, /^213\.239\./,
+            /^85\.10\./, /^85\.25\./, /^195\.71\./, /^212\.227\./
+        ]
+    },
+    '法国': {
+        code: 'FR',
+        ipRanges: [
+            // 法国主要IP段
+            /^141\.253\./, /^144\.24\./, /^193\.252\./, /^212\.27\./,
+            /^80\.12\./, /^81\.2\./, /^82\.64\./, /^83\.206\./,
+            /^195\.154\./, /^212\.83\./, /^213\.186\./, /^217\.70\./
+        ]
+    },
+    '澳大利亚': {
+        code: 'AU',
+        ipRanges: [
+            // 澳大利亚主要IP段
+            /^192\.9\./, /^203\.0\./, /^203\.2\./, /^203\.32\./,
+            /^101\.189\./, /^110\.174\./, /^150\.101\./, /^175\.45\./,
+            /^202\.6\./, /^202\.144\./, /^202\.158\./, /^210\.23\./
+        ]
+    },
+    '韩国': {
+        code: 'KR',
+        ipRanges: [
+            // 韩国主要IP段
+            /^132\.226\./, /^152\.70\./, /^193\.122\./, /^158\.179\./,
+            /^1\.11\./, /^1\.201\./, /^1\.224\./, /^1\.225\./,
+            /^114\.207\./, /^175\.126\./, /^211\.33\./, /^211\.34\./,
+            /^218\.144\./, /^218\.145\./, /^218\.234\./, /^220\.68\./
+        ]
+    },
+    '荷兰': {
+        code: 'NL',
+        ipRanges: [
+            // 荷兰主要IP段
+            /^204\.10\./, /^158\.101\./, /^31\.220\./, /^46\.19\./,
+            /^77\.72\./, /^80\.69\./, /^82\.94\./, /^85\.17\./,
+            /^194\.109\./, /^195\.69\./, /^213\.154\./, /^217\.21\./
+        ]
+    },
+    '巴西': {
+        code: 'BR',
+        ipRanges: [
+            // 巴西主要IP段 (包含您提供的IP)
+            /^129\.148\./, /^177\.37\./, /^189\.1\./, /^189\.2\./,
+            /^201\.48\./, /^201\.49\./, /^200\.142\./, /^200\.147\./,
+            /^186\.192\./, /^186\.193\./, /^191\.36\./, /^191\.37\./
+        ]
+    },
+    '俄罗斯': {
+        code: 'RU',
+        ipRanges: [
+            // 俄罗斯主要IP段
+            /^77\.88\./, /^87\.240\./, /^93\.158\./, /^95\.213\./,
+            /^178\.154\./, /^185\.32\./, /^188\.162\./, /^194\.87\./,
+            /^213\.180\./, /^217\.69\./, /^46\.29\./, /^5\.45\./
+        ]
+    },
+    '印度': {
+        code: 'IN',
+        ipRanges: [
+            // 印度主要IP段
+            /^103\.21\./, /^103\.22\./, /^157\.119\./, /^157\.230\./,
+            /^165\.22\./, /^167\.71\./, /^203\.109\./, /^203\.110\./,
+            /^122\.160\./, /^122\.161\./, /^180\.179\./, /^49\.204\./
+        ]
+    }
 }
-// 覆写规则
-function overwriteRules (params) {
-    const customRules = [
-      // 在此添加自定义规则，最高优先级。
-      // 为了方便区分，可设置 全局代理模式 或 自定义代理组。
-      // 示例 1 ：使用 全局代理模式
-      //"DOMAIN-SUFFIX,linux.do," + proxyName,
-      // 示例 2 ：使用 自定义代理组 1
-      //"DOMAIN-SUFFIX,gstatic.com, 自定义代理组 1",
-      // 示例 3 ：使用 自定义代理组 2
-      //"DOMAIN-SUFFIX,googleapis.com, 自定义代理组 2",
-    ];
 
+// 动态生成地区信息
+function getRegionInfo(regionName, regionCode) {
+    // 根据地区代码生成图标URL
+    const iconUrl = regionCode ?
+        `https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/${regionCode.toLowerCase()}.svg` :
+        'https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/link.svg'
+
+    return {
+        name: regionName,
+        code: regionCode,
+        icon: iconUrl
+    }
+}
+
+// IP地区检测函数 - 基于IP地址准确检测地区
+async function detectProxyRegion(proxy) {
+    const server = proxy.server
+    const name = proxy.name
+
+    // 跳过无关节点（如剩余流量、到期时间等）
+    if (/剩余|到期|主页|官网|游戏|关注|流量|期限|时间|有效|套餐|苹果用户|下载/.test(name)) {
+        return null // 返回null表示不是有效的代理节点
+    }
+
+    // 首先尝试从节点名称中推断地区
+    const nameRegion = detectRegionByName(name)
+    if (nameRegion) {
+        console.log(`✅ 节点名称识别: ${name} -> ${nameRegion.name}`)
+        return nameRegion
+    }
+
+    // 主要通过IP地址检测地区（最准确的方法）
+    const ip = server
+    const region = await detectRegionByIP(ip)
+    if (region) {
+        console.log(`✅ IP地址检测: ${ip} -> ${region.name}`)
+        return region
+    }
+
+    // 如果IP检测失败，返回未知地区
+    console.log(`⚠️ 无法检测地区: ${name} (${ip}) -> 归类到其它`)
+    return getRegionInfo('其它', 'OTHER')
+}
+
+// 通过节点名称推断地区的函数
+function detectRegionByName(name) {
+    const nameUpper = name.toUpperCase()
+
+    // 地区关键词映射
+    const regionKeywords = {
+        '香港': ['香港', 'HK', 'HONG KONG', 'HKG'],
+        '台湾': ['台湾', 'TW', 'TAIWAN', 'TWN'],
+        '新加坡': ['新加坡', 'SG', 'SINGAPORE', 'SGP'],
+        '日本': ['日本', 'JP', 'JAPAN', 'JPN', '东京', 'TOKYO'],
+        '美国': ['美国', 'US', 'USA', 'UNITED STATES', '洛杉矶', 'LOS ANGELES', '纽约', 'NEW YORK'],
+        '英国': ['英国', 'GB', 'UK', 'UNITED KINGDOM', '伦敦', 'LONDON'],
+        '加拿大': ['加拿大', 'CA', 'CANADA', 'CAN'],
+        '德国': ['德国', 'DE', 'GERMANY', '法兰克福', 'FRANKFURT'],
+        '法国': ['法国', 'FR', 'FRANCE', '巴黎', 'PARIS'],
+        '澳大利亚': ['澳大利亚', 'AU', 'AUSTRALIA', '悉尼', 'SYDNEY'],
+        '韩国': ['韩国', 'KR', 'KOREA', '首尔', 'SEOUL'],
+        '荷兰': ['荷兰', 'NL', 'NETHERLANDS', '阿姆斯特丹', 'AMSTERDAM'],
+        '巴西': ['巴西', 'BR', 'BRAZIL'],
+        '俄罗斯': ['俄罗斯', 'RU', 'RUSSIA', '莫斯科', 'MOSCOW'],
+        '印度': ['印度', 'IN', 'INDIA']
+    }
+
+    // 检查节点名称是否包含地区关键词
+    for (const [regionName, keywords] of Object.entries(regionKeywords)) {
+        for (const keyword of keywords) {
+            if (nameUpper.includes(keyword)) {
+                const config = regionDetectionRules[regionName]
+                return getRegionInfo(regionName, config.code)
+            }
+        }
+    }
+
+    return null
+}
+
+// 基于IP地址检测地区的专门函数
+function detectRegionByIP(ip) {
+    // 验证IP地址格式
+    if (!isValidIP(ip)) {
+        return null
+    }
+
+    // 通过IP段匹配地区（最快最准确的方法）
+    for (const [regionName, config] of Object.entries(regionDetectionRules)) {
+        for (const ipRange of config.ipRanges) {
+            if (ipRange.test(ip)) {
+                const regionInfo = getRegionInfo(regionName, config.code)
+                console.log(`✅ IP段规则匹配: ${ip} -> ${regionInfo.name}`)
+                return regionInfo
+            }
+        }
+    }
+
+    // 如果IP段匹配失败，尝试使用在线IP地理位置服务
+    // 这是备用方案，确保即使是未知IP段也能获得地区信息
+    return queryIPLocation(ip)
+}
+
+// 查询IP地理位置的备用函数
+async function queryIPLocation(ip) {
+    // 定义多个备用API
+    const apis = [
+        {
+            name: 'ip-api.com',
+            url: `http://ip-api.com/json/${ip}?fields=status,country,countryCode`,
+            parseResponse: (data) => {
+                if (data.status === 'success' && data.countryCode) {
+                    return {
+                        country_code: data.countryCode,
+                        country_name: data.country
+                    }
+                }
+                return null
+            }
+        },
+        {
+            name: 'ipapi.co',
+            url: `https://ipapi.co/${ip}/json/`,
+            parseResponse: (data) => {
+                if (data && data.country_code) {
+                    return {
+                        country_code: data.country_code,
+                        country_name: data.country_name
+                    }
+                }
+                return null
+            }
+        },
+        {
+            name: 'ipinfo.io',
+            url: `https://ipinfo.io/${ip}/json`,
+            parseResponse: (data) => {
+                if (data && data.country) {
+                    return {
+                        country_code: data.country,
+                        country_name: data.country
+                    }
+                }
+                return null
+            }
+        }
+    ]
+
+    // 逐个尝试API (在Node.js环境中使用axios)
+    const axios = require('axios')
+    for (const api of apis) {
+        try {
+            const response = await axios.get(api.url, {
+                timeout: 3000,
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            })
+
+            const parsed = api.parseResponse(response.data)
+
+            if (parsed && parsed.country_code) {
+                // 将国家代码映射到我们的地区系统
+                const countryCode = parsed.country_code.toUpperCase()
+                const countryName = parsed.country_name || '未知'
+
+                // 查找是否有对应的地区配置
+                for (const [regionName, config] of Object.entries(regionDetectionRules)) {
+                    if (config.code === countryCode) {
+                        const regionInfo = getRegionInfo(regionName, config.code)
+                        console.log(`✅ ${api.name} API查询成功: ${ip} -> ${regionInfo.name}`)
+                        return regionInfo
+                    }
+                }
+
+                // 如果没有预定义的地区，创建一个新的地区信息
+                const regionInfo = getRegionInfo(countryName, countryCode)
+                console.log(`✅ ${api.name} API查询成功: ${ip} -> ${regionInfo.name}`)
+                return regionInfo
+            }
+        } catch (error) {
+            console.log(`${api.name} IP地理位置查询失败: ${ip} - ${error.message}`)
+            continue // 尝试下一个API
+        }
+    }
+
+    console.log(`所有IP地理位置API都失败了: ${ip}`)
+    return null
+}
+
+// 验证IP地址格式的辅助函数
+function isValidIP(ip) {
+    const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+    const ipv6Regex = /^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/
+    return ipv4Regex.test(ip) || ipv6Regex.test(ip)
+}
+
+const proxyName = "代理模式"
+
+async function main(params) {
+    if (!params.proxies) return params
+    overwriteRules(params)
+    await overwriteProxyGroups(params)
+    overwriteDns(params)
+    return params
+}
+
+function overwriteRules(params) {
+    const customRules = [
+        // 在此添加自定义规则，最高优先级。
+        // 为了方便区分，可设置 全局代理模式 或 自定义代理组。
+        // 示例 1 ：使用 全局代理模式
+        //"DOMAIN-SUFFIX,linux.do," + proxyName,
+        // 示例 2 ：使用 自定义代理组 1
+        //"DOMAIN-SUFFIX,gstatic.com, 自定义代理组 1",
+        // 示例 3 ：使用 自定义代理组 2
+        //"DOMAIN-SUFFIX,googleapis.com, 自定义代理组 2",
+    ]
 
     const rules = [
         ...customRules,
@@ -45,7 +400,7 @@ function overwriteRules (params) {
         "RULE-SET,greatfire," + proxyName,
         "RULE-SET,proxy," + proxyName,
         "MATCH, 漏网之鱼",
-    ];
+    ]
     const ruleProviders = {
         reject: {
             type: "http",
@@ -141,13 +496,6 @@ function overwriteRules (params) {
             path: "./ruleset/tld-not-cn.yaml",
             interval: 86400,
         },
-        telegramcidr: {
-            type: "http",
-            behavior: "ipcidr",
-            url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt",
-            path: "./ruleset/telegramcidr.yaml",
-            interval: 86400,
-        },
         cncidr: {
             type: "http",
             behavior: "ipcidr",
@@ -169,74 +517,167 @@ function overwriteRules (params) {
             path: "./ruleset/applications.yaml",
             interval: 86400,
         },
-    };
-    params ["rule-providers"] = ruleProviders;
-    params ["rules"] = rules;
+    }
+    params["rule-providers"] = ruleProviders
+    params["rules"] = rules
 }
-// 覆写代理组
-function overwriteProxyGroups (params) {
-    // 添加自用代理
-    params.proxies.push (
-        //  { name: '1 - 香港 - 示例 ', type: *, server: **, port: *, cipher: **, password: **, udp: true }
 
-    );
+// 覆写代理组
+async function overwriteProxyGroups(params) {
+    // 添加自用代理
+    params.proxies.push(
+        //  { name: '1 - 香港 - 示例 ', type: *, server: **, port: *, cipher: **, password: **, udp: true }
+    )
 
     // 所有代理
-    const allProxies = params ["proxies"].map ((e) => e.name);
-    // 自动选择代理组，按地区分组选延迟最低
-    const autoProxyGroupRegexs = [
-        { name: "HK - 自动选择", regex: / 香港 | HK|Hong|🇭🇰/ },
-        { name: "TW - 自动选择", regex: / 台湾 | TW|Taiwan|Wan|🇨🇳|🇹🇼/ },
-        { name: "SG - 自动选择", regex: / 新加坡 | 狮城 | SG|Singapore|🇸🇬/ },
-        { name: "JP - 自动选择", regex: / 日本 | JP|Japan|🇯🇵/ },
-        { name: "US - 自动选择", regex: / 美国 | US|United States|America|🇺🇸/ },
-        { name: "UK - 自动选择", regex: / 英国 | UK|United Kingdom|England|🏴󠁧󠁢󠁥󠁮󠁧󠁿/ },
-        { name: "CA - 自动选择", regex: / 加拿大 | CA|Canada|🇨🇦/ },
-        { name: "DE - 自动选择", regex: / 德国 | DE|Germany|🇩🇪/ },
-        { name: "FR - 自动选择", regex: / 法国 | FR|France|🇫🇷/ },
-        { name: "AU - 自动选择", regex: / 澳大利亚 | AU|Australia|🇦🇺/ },
-        { name: "MO - 自动选择", regex: / 澳门 | MO|Macao|🇲🇴/ },
-        { name: "KR - 自动选择", regex: / 韩国 | KR|Korea|🇰🇷/ },
-        { name: "其它 - 自动选择", regex: /(?!.*(?: 剩余 | 到期 | 主页 | 官网 | 游戏 | 关注))(.*)/ },
-    ];
+    const allProxies = params["proxies"].map((e) => e.name)
 
-    const autoProxyGroups = autoProxyGroupRegexs
-        .map ((item) => ({
-            name: item.name,
-            type: "url-test",
-            url: "http://www.gstatic.com/generate_204",
-            interval: 300,
-            tolerance: 50,
-            proxies: getProxiesByRegex (params, item.regex),
-            hidden: true,
-        }))
-        .filter ((item) => item.proxies.length > 0);
+    // 获取订阅分组信息
+    const subscriptionGroups = params.subscriptionGroups || []
 
-    // 手工选择代理组
-    const manualProxyGroups = [
-        { name: "HK - 手工选择", regex: / 香港 | HK|Hong|🇭🇰/, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/hk.svg" },
-        { name: "TW - 手工选择", regex: / 台湾 | TW|Taiwan|Wan|🇨🇳|🇹🇼/, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/tw.svg" },
-        { name: "SG - 手工选择", regex: / 新加坡 | 狮城 | SG|Singapore|🇸🇬/, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/sg.svg" },
-        { name: "JP - 手工选择", regex: / 日本 | JP|Japan|🇯🇵/, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/jp.svg" },
-        { name: "US - 手工选择", regex: / 美国 | US|United States|America|🇺🇸/, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/us.svg" },
-        { name: "UK - 手工选择", regex: / 英国 | UK|United Kingdom|England|🏴󠁧󠁢󠁥󠁮󠁧󠁿/, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/uk.svg" },
-        { name: "CA - 手工选择", regex: / 加拿大 | CA|Canada|🇨🇦/, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/ca.svg" },
-        { name: "DE - 手工选择", regex: / 德国 | DE|Germany|🇩🇪/, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/de.svg" },
-        { name: "FR - 手工选择", regex: / 法国 | FR|France|🇫🇷/, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/fr.svg" },
-        { name: "AU - 手工选择", regex: / 澳大利亚 | AU|Australia|🇦🇺/, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/au.svg" },
-        { name: "MO - 手工选择", regex: / 澳门 | MO|Macao|🇲🇴/, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/mo.svg" },
-        { name: "KR - 手工选择", regex: / 韩国 | KR|Korea|🇰🇷/, icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/flags/kr.svg" },
-    ];
+    // 为每个订阅创建地区分组
+    const subscriptionRegionGroups = []
+    const subscriptionAutoGroups = []
+    const subscriptionManualGroups = []
 
-    const manualProxyGroupsConfig = manualProxyGroups
-        .map ((item) => ({
-            name: item.name,
-            type: "select",
-            proxies: getManualProxiesByRegex (params, item.regex),
-            icon: item.icon,
-            hidden: false,
-        }))
-        .filter ((item) => item.proxies.length > 0);
+    for (const sub of subscriptionGroups) {
+        // 按地区分组该订阅的节点
+        const regionGroups = {}
+
+        // 获取该订阅的实际代理对象
+        const subProxies = params.proxies.filter(proxy => sub.proxies.includes(proxy.name))
+
+        console.log(`🔍 开始检测订阅 "${sub.name}" 的 ${subProxies.length} 个节点的地区信息...`)
+
+        for (const proxy of subProxies) {
+            const regionInfo = await detectProxyRegion(proxy)
+            if (regionInfo && regionInfo !== null) { // 跳过无效节点
+                const regionKey = regionInfo.name // 使用地区名称作为键
+                if (!regionGroups[regionKey]) {
+                    regionGroups[regionKey] = {
+                        proxies: [],
+                        info: regionInfo
+                    }
+                }
+                regionGroups[regionKey].proxies.push(proxy.name)
+            }
+        }
+
+        // 统计检测结果
+        const totalRegions = Object.keys(regionGroups).length
+        const totalNodes = Object.values(regionGroups).reduce((sum, group) => sum + group.proxies.length, 0)
+        console.log(`📊 订阅 "${sub.name}" 地区检测完成: ${totalNodes} 个节点分布在 ${totalRegions} 个地区`)
+
+        // 显示每个地区的节点数量
+        Object.entries(regionGroups).forEach(([regionName, regionData]) => {
+            console.log(`   ${regionData.info.icon} ${regionName}: ${regionData.proxies.length} 个节点`)
+        })
+
+        // 为每个有节点的地区创建代理组
+        Object.keys(regionGroups).forEach(regionKey => {
+            const regionData = regionGroups[regionKey]
+            if (regionData.proxies.length > 0) {
+                // 订阅+地区的自动选择组
+                subscriptionRegionGroups.push({
+                    name: `${sub.name} - ${regionData.info.name}`,
+                    type: "url-test",
+                    url: "http://www.gstatic.com/generate_204",
+                    interval: 300,
+                    tolerance: 50,
+                    proxies: regionData.proxies,
+                    icon: regionData.info.icon,
+                    hidden: false,
+                })
+            }
+        })
+
+        // 收集该订阅的所有有效节点
+        const validProxies = []
+        Object.keys(regionGroups).forEach(regionKey => {
+            validProxies.push(...regionGroups[regionKey].proxies)
+        })
+
+        // 订阅总体自动选择组（包含该订阅所有节点）
+        if (validProxies.length > 0) {
+            subscriptionAutoGroups.push({
+                name: `${sub.name} - 自动选择`,
+                type: "url-test",
+                url: "http://www.gstatic.com/generate_204",
+                interval: 300,
+                tolerance: 50,
+                proxies: validProxies,
+                hidden: true,
+            })
+
+            // 订阅手工选择组
+            subscriptionManualGroups.push({
+                name: `${sub.name} - 手工选择`,
+                type: "select",
+                proxies: validProxies,
+                icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/link.svg",
+                hidden: false,
+            })
+        }
+    }
+
+    // 全局地区自动选择组（所有订阅的同地区节点）
+    const globalRegionGroups = {}
+    for (const proxy of params.proxies) {
+        const regionInfo = await detectProxyRegion(proxy)
+        if (regionInfo && regionInfo !== null) { // 跳过无效节点
+            const regionKey = regionInfo.name // 使用地区名称作为键
+            if (!globalRegionGroups[regionKey]) {
+                globalRegionGroups[regionKey] = {
+                    proxies: [],
+                    info: regionInfo
+                }
+            }
+            globalRegionGroups[regionKey].proxies.push(proxy.name)
+        }
+    }
+
+    const globalAutoGroups = Object.keys(globalRegionGroups)
+        .filter(regionKey => globalRegionGroups[regionKey].proxies.length > 0)
+        .map(regionKey => {
+            const regionData = globalRegionGroups[regionKey]
+            return {
+                name: `${regionData.info.name} - 全局选择`,
+                type: "url-test",
+                url: "http://www.gstatic.com/generate_204",
+                interval: 300,
+                tolerance: 50,
+                proxies: regionData.proxies,
+                icon: regionData.info.icon,
+                hidden: true,
+            }
+        })
+
+    // 生成自动选择的选项列表（去重）
+    const autoSelectionOptions = []
+
+    // 添加订阅自动选择
+    subscriptionAutoGroups.forEach(group => {
+        if (!autoSelectionOptions.includes(group.name)) {
+            autoSelectionOptions.push(group.name)
+        }
+    })
+
+    // 添加订阅+地区自动选择组（这是用户要求的重点）
+    subscriptionRegionGroups.forEach(group => {
+        if (!autoSelectionOptions.includes(group.name)) {
+            autoSelectionOptions.push(group.name)
+        }
+    })
+
+    // 添加全局地区自动选择
+    globalAutoGroups.forEach(group => {
+        if (!autoSelectionOptions.includes(group.name)) {
+            autoSelectionOptions.push(group.name)
+        }
+    })
+
+    // 添加ALL自动选择
+    autoSelectionOptions.push("ALL - 自动选择")
 
     const groups = [
         {
@@ -262,7 +703,7 @@ function overwriteProxyGroups (params) {
             name: "自动选择",
             type: "select",
             icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/speed.svg",
-            proxies: ["ALL - 自动选择"],
+            proxies: autoSelectionOptions,
         },
         {
             name: "负载均衡 (散列)",
@@ -296,45 +737,27 @@ function overwriteProxyGroups (params) {
             hidden: true,
         },
         {
-            name: "自定义代理组 1",
-            type: "select",
-            proxies: [proxyName, "HK - 自动选择", "TW - 自动选择", "SG - 自动选择", "JP - 自动选择", "US - 自动选择", "其它 - 自动选择", "HK - 手工选择", "TW - 手工选择", "SG - 手工选择", "JP - 手工选择", "US - 手工选择"],
-            "include-all": true,
-            icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/ambulance.svg"
-        },
-        {
-            name: "自定义代理组 2",
-            type: "select",
-            proxies: [proxyName, "HK - 自动选择", "TW - 自动选择", "SG - 自动选择", "JP - 自动选择", "US - 自动选择", "其它 - 自动选择", "HK - 手工选择", "TW - 手工选择", "SG - 手工选择", "JP - 手工选择", "US - 手工选择"],
-            "include-all": true,
-            icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/ambulance.svg"
-        },
-        {
             name: "电报消息",
             type: "select",
-            proxies: [proxyName, "HK - 自动选择", "TW - 自动选择", "SG - 自动选择", "JP - 自动选择", "US - 自动选择", "其它 - 自动选择", "HK - 手工选择", "TW - 手工选择", "SG - 手工选择", "JP - 手工选择", "US - 手工选择"],
-            // "include-all": true,
+            proxies: [proxyName, ...autoSelectionOptions.slice(0, -1)], // 除了ALL自动选择
             icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/telegram.svg"
         },
         {
             name: "ChatGPT",
             type: "select",
-            proxies: [proxyName, "HK - 自动选择", "TW - 自动选择", "SG - 自动选择", "JP - 自动选择", "US - 自动选择", "其它 - 自动选择", "HK - 手工选择", "TW - 手工选择", "SG - 手工选择", "JP - 手工选择", "US - 手工选择"],
-            // "include-all": true,
+            proxies: [proxyName, ...autoSelectionOptions.slice(0, -1)], // 除了ALL自动选择
             icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/chatgpt.svg"
         },
         {
             name: "Claude",
             type: "select",
-            proxies: [proxyName, "HK - 自动选择", "TW - 自动选择", "SG - 自动选择", "JP - 自动选择", "US - 自动选择", "其它 - 自动选择", "HK - 手工选择", "TW - 手工选择", "SG - 手工选择", "JP - 手工选择", "US - 手工选择"],
-            // "include-all": true,
+            proxies: [proxyName, ...autoSelectionOptions.slice(0, -1)], // 除了ALL自动选择
             icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/claude.svg"
         },
         {
             name: "Spotify",
             type: "select",
-            proxies: [proxyName, "HK - 自动选择", "TW - 自动选择", "SG - 自动选择", "JP - 自动选择", "US - 自动选择", "其它 - 自动选择", "HK - 手工选择", "TW - 手工选择", "SG - 手工选择", "JP - 手工选择", "US - 手工选择"],
-            // "include-all": true,
+            proxies: [proxyName, ...autoSelectionOptions.slice(0, -1)], // 除了ALL自动选择
             icon: "https://storage.googleapis.com/spotifynewsroom-jp.appspot.com/1/2020/12/Spotify_Icon_CMYK_Green.png"
         },
         {
@@ -349,26 +772,31 @@ function overwriteProxyGroups (params) {
             proxies: ["REJECT", "DIRECT", proxyName],
             icon: "https://fastly.jsdelivr.net/gh/clash-verge-rev/clash-verge-rev.github.io@main/docs/assets/icons/block.svg"
         },
-    ];
+    ]
 
-    autoProxyGroups.length &&
-        groups [2].proxies.unshift (...autoProxyGroups.map ((item) => item.name));
-    groups.push (...autoProxyGroups);
-    groups.push (...manualProxyGroupsConfig);
-    params ["proxy-groups"] = groups;
+    // 将所有分组添加到groups中
+    groups.push(...subscriptionAutoGroups)         // 订阅自动选择组
+    groups.push(...globalAutoGroups)               // 全局地区自动选择组
+    groups.push(...subscriptionRegionGroups)       // 订阅+地区分组
+    groups.push(...subscriptionManualGroups)       // 订阅手工选择组
 
+    // 清理订阅分组信息，避免在最终配置中出现
+    delete params.subscriptionGroups
+
+    params["proxy-groups"] = groups
 }
+
 // 防止 dns 泄露
-function overwriteDns (params) {
+function overwriteDns(params) {
     const cnDnsList = [
         "https://223.5.5.5/dns-query",
         "https://1.12.12.12/dns-query",
-    ];
+    ]
     const trustDnsList = [
         'quic://dns.cooluc.com',
         "https://1.0.0.1/dns-query",
         "https://1.1.1.1/dns-query",
-    ];
+    ]
 
     const dnsOptions = {
         enable: true,
@@ -394,10 +822,10 @@ function overwriteDns (params) {
             ipcidr: ["240.0.0.0/4"],
             domain: ["+.google.com", "+.facebook.com", "+.youtube.com"],
         },
-    };
+    }
 
     // GitHub 加速前缀
-    const githubPrefix = "https://fastgh.lainbo.com/";
+    const githubPrefix = "https://fastgh.lainbo.com/"
 
     // GEO 数据 GitHub 资源原始下载地址
     const rawGeoxURLs = {
@@ -406,15 +834,15 @@ function overwriteDns (params) {
         geosite:
             "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/geosite.dat",
         mmdb: "https://github.com/MetaCubeX/meta-rules-dat/releases/download/latest/country-lite.mmdb",
-    };
+    }
 
     // 生成带有加速前缀的 GEO 数据资源对象
-    const accelURLs = Object.fromEntries (
-        Object.entries (rawGeoxURLs).map (([key, githubUrl]) => [
+    const accelURLs = Object.fromEntries(
+        Object.entries(rawGeoxURLs).map(([key, githubUrl]) => [
             key,
             `${githubPrefix}${githubUrl}`,
         ])
-    );
+    )
 
     const otherOptions = {
         "unified-delay": true,
@@ -437,22 +865,12 @@ function overwriteDns (params) {
         },
         "geodata-mode": true,
         "geox-url": accelURLs,
-    };
+    }
 
-    params.dns = { ...params.dns, ...dnsOptions };
-    Object.keys (otherOptions).forEach ((key) => {
-        params [key] = otherOptions [key];
-    });
+    params.dns = { ...params.dns, ...dnsOptions }
+    Object.keys(otherOptions).forEach((key) => {
+        params[key] = otherOptions[key]
+    })
 }
 
-function getProxiesByRegex (params, regex) {
-    const matchedProxies = params.proxies.filter ((e) => regex.test (e.name)).map ((e) => e.name);
-    return matchedProxies.length > 0 ? matchedProxies : ["手动选择"];
-}
-
-function getManualProxiesByRegex (params, regex) {
-    const matchedProxies = params.proxies.filter ((e) => regex.test (e.name)).map ((e) => e.name);
-    return matchedProxies.length > 0 ? matchedProxies : ["DIRECT", "手动选择", proxyName];
-}
-
-module.exports = { main };
+module.exports = { main }

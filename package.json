@@ -1,26 +1,28 @@
 {
-  "name": "clash-ubscription-merge",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/ZzanZiFeng/Clash-ubscription-merge.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/ZzanZiFeng/Clash-ubscription-merge/issues"
-  },
-  "homepage": "https://github.com/ZzanZiFeng/Clash-ubscription-merge#readme",
-  "dependencies": {
-    "axios": "^1.12.2",
-    "express": "^5.1.0",
-    "js-yaml": "^4.1.0",
-    "serverless-http": "^4.0.0"
-  }
+    "name": "clash-ubscription-merge",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "start": "node functions/server.js",
+        "dev": "node functions/server.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ZzanZiFeng/Clash-ubscription-merge.git"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/ZzanZiFeng/Clash-ubscription-merge/issues"
+    },
+    "homepage": "https://github.com/ZzanZiFeng/Clash-ubscription-merge#readme",
+    "dependencies": {
+        "axios": "^1.12.2",
+        "express": "^5.1.0",
+        "js-yaml": "^4.1.0",
+        "serverless-http": "^4.0.0"
+    }
 }
