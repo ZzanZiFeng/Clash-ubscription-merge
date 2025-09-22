@@ -1,7 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const yaml = require('js-yaml');
-const { main } = require('./clash-rules');
+const { main } = require('./clash-rules.js');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -200,11 +200,5 @@ app.get('/merge', async (req, res) => {
 });
 
 const serverless = require('serverless-http');
-
-// ... (The rest of the existing express app code)
-
-app.get('/merge', async (req, res) => {
-    // ... (The rest of the existing /merge route handler code)
-});
 
 module.exports.handler = serverless(app);
